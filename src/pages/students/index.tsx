@@ -2,7 +2,9 @@ import { RegisterStudents } from '@/src/components/RegisterStudent'
 import { Td } from '@/src/components/table/Td'
 import { Th } from '@/src/components/table/Th'
 import { UsersContext } from '@/src/context/UsersContext'
+import { sessionOptions } from '@/src/lib/session'
 import * as Dialog from '@radix-ui/react-dialog'
+import { withIronSessionSsr } from 'iron-session/next'
 
 import { Trash } from 'phosphor-react'
 import { useContext, useState } from 'react'
@@ -124,3 +126,20 @@ export default function Students() {
     </main>
   )
 }
+
+export const getServerSideProps = withIronSessionSsr(async function ({ req }) {
+  const auth = req.session.auth
+
+  if (auth === undefined) {
+    return {
+      redirect: {
+        destination: '/login',
+        statusCode: 302,
+      },
+    }
+  }
+
+  return {
+    props: {},
+  }
+}, sessionOptions)

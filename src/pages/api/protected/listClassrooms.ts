@@ -1,6 +1,8 @@
 import { fauna } from '@/src/services/fauna'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { query as q } from 'faunadb'
+import { sessionOptions } from '@/src/lib/session'
+import { withIronSessionApiRoute } from 'iron-session/next'
 
 interface ResponseListClassrooms {
   result: {
@@ -32,10 +34,15 @@ interface ResponseListClassrooms {
   total: number
 }
 
-export default async function listClassrooms(
+export async function listClassrooms(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  // console.log(req.session.auth)
+  // if (req.session.auth) {
+  //   console.log(req.session.auth)
+  // }
+
   const { after, before } = req.query
 
   try {
@@ -74,3 +81,5 @@ export default async function listClassrooms(
       .json({ error: 'Server unavailable, please try again later' })
   }
 }
+
+export default withIronSessionApiRoute(listClassrooms, sessionOptions)

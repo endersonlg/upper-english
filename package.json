@@ -20,6 +20,7 @@
     "eslint": "8.38.0",
     "eslint-config-next": "13.3.0",
     "faunadb": "^4.8.0",
+    "iron-session": "^6.3.1",
     "next": "13.3.0",
     "phosphor-react": "^1.4.1",
     "postcss": "8.4.21",

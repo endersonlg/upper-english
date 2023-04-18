@@ -55,7 +55,6 @@ export default async function registerClassroom(
       },
     })
   } catch (err) {
-    console.log(err)
     return res
       .status(500)
       .json({ error: 'Server unavailable, please try again later' })

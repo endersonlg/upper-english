@@ -8,16 +8,19 @@ import { UsersProvider } from '../context/UsersContext'
 import 'react-toastify/dist/ReactToastify.css'
 
 import { ToastContainer } from 'react-toastify'
+import { AuthProvider } from '../context/AuthContext'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <DefaultLayout>
-      <QueryClientProvider client={queryClient}>
-        <UsersProvider>
-          <Component {...pageProps} />
-        </UsersProvider>
-      </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <DefaultLayout>
+          <UsersProvider>
+            <Component {...pageProps} />
+          </UsersProvider>
+        </DefaultLayout>
+      </AuthProvider>
       <ToastContainer position="bottom-right" theme="dark" />
-    </DefaultLayout>
+    </QueryClientProvider>
   )
 }

@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios'
-import React, { createContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
+import { AuthContext } from './AuthContext'
 
 interface RegisterStudent {
   name: string
@@ -46,11 +47,13 @@ export function UsersProvider({ children }: UsersProviderProps) {
   const [teachers, setTeachers] = useState<Teachers[]>([])
   const [isLoading, setLoading] = useState(true)
 
+  const { isAuthenticated } = useContext(AuthContext)
+
   useEffect(() => {
     async function load() {
       try {
         const { data } = await axios.get<ResponseListTeachersAndStudents>(
-          '/api/listTeachersAndStudents',
+          '/api/protected/listTeachersAndStudents',
         )
 
         setStudents(data.students)
@@ -64,13 +67,15 @@ export function UsersProvider({ children }: UsersProviderProps) {
       }
     }
 
-    load()
-  }, [])
+    if (isAuthenticated) {
+      load()
+    }
+  }, [isAuthenticated])
 
   async function registerStudent({ name }: RegisterStudent) {
     try {
       const { data } = await axios.post<ResponseRegisterStudent>(
-        '/api/registerStudent',
+        '/api/protected/registerStudent',
         {
           name,
         },

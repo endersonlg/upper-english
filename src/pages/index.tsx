@@ -9,21 +9,8 @@ import { UsersContext } from '../context/UsersContext'
 import { toast } from 'react-toastify'
 import { useQuery } from 'react-query'
 import { queryClient } from '../lib/queryClient'
-
-interface Student {
-  id: string
-  name: string
-}
-
-interface Teacher {
-  id: string
-  name: string
-}
-
-interface ClassroomsProps {
-  teachers: Teacher[]
-  students: Student[]
-}
+import { withIronSessionSsr } from 'iron-session/next'
+import { sessionOptions } from '../lib/session'
 
 interface NewClassroom {
   student: string
@@ -55,7 +42,7 @@ interface ResponseClassroom {
 
 const limit = 8
 
-export default function Classrooms(props: ClassroomsProps) {
+export default function Classrooms() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -76,7 +63,7 @@ export default function Classrooms(props: ClassroomsProps) {
       }
 
       const response = await axios.get<ResponseClassroom>(
-        '/api/listClassrooms?' + params.toString(),
+        '/api/protected/listClassrooms?' + params.toString(),
       )
 
       setAfter(null)
@@ -127,7 +114,7 @@ export default function Classrooms(props: ClassroomsProps) {
     } = newClassroom
 
     try {
-      await axios.post('/api/registerClassroom', {
+      await axios.post('/api/protected/registerClassroom', {
         student,
         teacher,
         group,
@@ -261,3 +248,20 @@ export default function Classrooms(props: ClassroomsProps) {
     </>
   )
 }
+
+export const getServerSideProps = withIronSessionSsr(async function ({ req }) {
+  const auth = req.session.auth
+
+  if (auth === undefined) {
+    return {
+      redirect: {
+        destination: '/login',
+        statusCode: 302,
+      },
+    }
+  }
+
+  return {
+    props: {},
+  }
+}, sessionOptions)
