@@ -61,7 +61,7 @@ export default function Students() {
             <tr key={student.id}>
               <Td className="w-2/4">{student.name}</Td>
               <Td>
-                <button className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out">
+                <button className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
                   <Trash size={24} weight="fill" />
                 </button>
               </Td>
@@ -130,7 +130,7 @@ export default function Students() {
 export const getServerSideProps = withIronSessionSsr(async function ({ req }) {
   const auth = req.session.auth
 
-  if (auth === undefined) {
+  if (auth?.isAuthenticated === undefined) {
     return {
       redirect: {
         destination: '/login',

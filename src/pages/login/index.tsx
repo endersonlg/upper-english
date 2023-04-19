@@ -1,5 +1,7 @@
 import { Input } from '@/src/components/Input'
 import { AuthContext } from '@/src/context/AuthContext'
+import { sessionOptions } from '@/src/lib/session'
+import { withIronSessionSsr } from 'iron-session/next'
 import { CircleNotch } from 'phosphor-react'
 import { useContext } from 'react'
 import { useForm } from 'react-hook-form'
@@ -52,12 +54,19 @@ export default function Login(props: any) {
   )
 }
 
-// export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-//   if (req.session) {
-//     console.log(req.session)
-//   }
+export const getServerSideProps = withIronSessionSsr(async function ({ req }) {
+  const auth = req.session.auth
 
-//   return {
-//     props: {}, // will be passed to the page component as props
-//   }
-// }
+  if (auth?.isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/',
+        statusCode: 302,
+      },
+    }
+  }
+
+  return {
+    props: {},
+  }
+}, sessionOptions)

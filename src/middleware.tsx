@@ -8,7 +8,7 @@ export async function middleware(req: NextRequest) {
   const { auth } = await getIronSession(req, res, sessionOptions)
 
   if (!auth?.isAuthenticated) {
-    return NextResponse.json({ error: 'not authenticated' })
+    return NextResponse.json({ error: 'Not authenticated' })
   }
 
   return res
