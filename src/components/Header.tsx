@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ClipboardText, Student } from 'phosphor-react'
+import { ClipboardText, Student, UsersThree } from 'phosphor-react'
 import Image from 'next/image'
 
 import logo from '../assets/logo.svg'
@@ -24,6 +24,16 @@ export function Header() {
           >
             <ClipboardText size={24} />
           </Link>
+
+          <Link
+            href="/groups"
+            className={'w-12 h-12 flex justify-center items-center text-gray-100 border-y-2 border-solid border-transparent transition duration-200 ease-in-out hover:border-b-green-500'.concat(
+              router.pathname === '/groups' ? ' text-green-500' : '',
+            )}
+          >
+            <UsersThree size={24} />
+          </Link>
+
           <Link
             href="/students"
             className={'w-12 h-12 flex justify-center items-center text-gray-100 border-y-2 border-solid border-transparent transition duration-200 ease-in-out hover:border-b-green-500'.concat(

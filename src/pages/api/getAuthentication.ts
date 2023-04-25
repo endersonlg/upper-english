@@ -5,11 +5,11 @@ import { NextApiRequest, NextApiResponse } from 'next'
 async function getAuthentication(req: NextApiRequest, res: NextApiResponse) {
   if (req.session.auth) {
     res.json({
-      isLoggedIn: true,
+      isAuthenticated: true,
     })
   } else {
     res.json({
-      isLoggedIn: false,
+      isAuthenticated: false,
     })
   }
 }

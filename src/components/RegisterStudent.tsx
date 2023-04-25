@@ -54,6 +54,7 @@ export function RegisterStudents({ closeModal }: RegisterStudentsProps) {
         <form
           className="flex flex-col gap-4"
           onSubmit={handleSubmit(handleRegister)}
+          autoComplete="off"
         >
           <Input label="Name" required {...register('name')} />
 

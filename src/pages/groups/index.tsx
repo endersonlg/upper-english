@@ -1,23 +1,34 @@
-import { RegisterStudents } from '@/src/components/RegisterStudent'
+import { EditGroup } from '@/src/components/EditGroup '
+import { RegisterGroups } from '@/src/components/RegisterGroup'
 import { Td } from '@/src/components/table/Td'
 import { Th } from '@/src/components/table/Th'
-import { UsersContext } from '@/src/context/UsersContext'
+import { Group, UsersContext } from '@/src/context/UsersContext'
 import { sessionOptions } from '@/src/lib/session'
 import * as Dialog from '@radix-ui/react-dialog'
 import { withIronSessionSsr } from 'iron-session/next'
 
-import { Trash } from 'phosphor-react'
+import { PencilSimple, Trash } from 'phosphor-react'
 import { useContext, useState } from 'react'
 
 const limit = 8
 
-export default function Students() {
-  const { students, isLoading } = useContext(UsersContext)
+export default function Groups() {
+  const { groups, isLoading } = useContext(UsersContext)
   const [page, setPage] = useState(1)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isRegisterGroupModalOpen, setIsRegisterGroupModalOpen] =
+    useState(false)
+  const [groupToEdit, setGroupToEdit] = useState<Group | null>(null)
 
-  function closeModal() {
-    setIsModalOpen(false)
+  function closeRegisterGroupModal() {
+    setIsRegisterGroupModalOpen(false)
+  }
+
+  function openModalToEditGroup(group: Group) {
+    setGroupToEdit(group)
+  }
+
+  function closeEditGroupModal() {
+    setGroupToEdit(null)
   }
 
   function handlePrevPage() {
@@ -30,9 +41,15 @@ export default function Students() {
     setPage((state) => state + 1)
   }
 
-  const total = students.length
+  const total = groups.length
   const hasMore = page * limit >= total
-  const paginatedStudents = students.slice((page - 1) * limit, page * limit)
+
+  const groupsAdjustedPaginated = groups
+    .slice((page - 1) * limit, page * limit)
+    .map((group) => ({
+      ...group,
+      studentsName: group.students.map((student) => student.name).toString(),
+    }))
 
   return (
     <main className="p-8 h-screen w-full flex flex-col items-center justify-center">
@@ -40,8 +57,12 @@ export default function Students() {
         <thead>
           <tr>
             <Th className="text-left">Name</Th>
+            <Th className="text-left">Students</Th>
             <Th className="text-right">
-              <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <Dialog.Root
+                open={isRegisterGroupModalOpen}
+                onOpenChange={setIsRegisterGroupModalOpen}
+              >
                 <Dialog.Trigger asChild>
                   <button
                     type="button"
@@ -51,25 +72,42 @@ export default function Students() {
                     Add
                   </button>
                 </Dialog.Trigger>
-                {isModalOpen && <RegisterStudents closeModal={closeModal} />}
+                {isRegisterGroupModalOpen && (
+                  <RegisterGroups closeModal={closeRegisterGroupModal} />
+                )}
               </Dialog.Root>
             </Th>
           </tr>
         </thead>
         <tbody>
           {!isLoading &&
-            paginatedStudents.map((student) => (
-              <tr key={student.id}>
-                <Td className="w-2/4">{student.name}</Td>
+            groupsAdjustedPaginated.map((group) => (
+              <tr key={group.id}>
+                <Td className="w-1/4">{group.name}</Td>
+                <Td className="w-2/4">{group.studentsName}</Td>
                 <Td>
-                  <button className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
-                    <Trash size={24} weight="fill" />
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className=" text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed"
+                      onClick={() => openModalToEditGroup(group)}
+                    >
+                      <PencilSimple size={24} weight="fill" />
+                    </button>
+                    <button className="text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
+                      <Trash size={24} weight="fill" />
+                    </button>
+                  </div>
                 </Td>
               </tr>
             ))}
         </tbody>
       </table>
+
+      <Dialog.Root open={!!groupToEdit} onOpenChange={closeEditGroupModal}>
+        {groupToEdit && (
+          <EditGroup group={groupToEdit} closeModal={closeEditGroupModal} />
+        )}
+      </Dialog.Root>
 
       {isLoading && (
         <div

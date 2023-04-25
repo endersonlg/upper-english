@@ -98,7 +98,7 @@ export function RegisterClassroom({
             control={control}
             render={({ field }) => (
               <AutoComplete
-                label="Student"
+                label="Group / Student"
                 options={students.map((student) => student.name)}
                 required
                 {...field}

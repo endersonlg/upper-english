@@ -14,6 +14,16 @@ module.exports = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      maxWidth: {
+        "1/4": "25%",
+        "2/4": "50%",
+        "3/4": "75%",
+      },
+      maxHeight: {
+        "1/4": "25%",
+        "2/4": "50%",
+        "3/4": "75%",
+      },
     },
     colors: {
       "opacity-black-75": "rgba(0,0,0,0.75)",

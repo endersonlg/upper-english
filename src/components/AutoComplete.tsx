@@ -3,15 +3,16 @@ import { Combobox, Transition } from '@headlessui/react'
 import { Input } from './Input'
 
 interface AutoCompleteProps {
-  label: string
+  label?: string
   options: string[]
   required: boolean
+  className?: string
   onChange: (value: string) => void
   value: string
 }
 
 export const AutoComplete = React.forwardRef(function AutoComplete(
-  { label, options, required, onChange, value }: AutoCompleteProps,
+  { label, options, className, required, onChange, value }: AutoCompleteProps,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const [query, setQuery] = useState('')
@@ -28,7 +29,7 @@ export const AutoComplete = React.forwardRef(function AutoComplete(
 
   return (
     <Combobox onChange={onChange} value={value} ref={ref}>
-      <div className="relative">
+      <div className={'relative'.concat(` ${className}`)}>
         <Combobox.Input
           as={Input}
           label={label}
