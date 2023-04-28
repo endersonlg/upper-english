@@ -1,4 +1,5 @@
 import { EditGroup } from '@/src/components/EditGroup '
+import { ModalDelete } from '@/src/components/ModalDelete'
 import { RegisterGroups } from '@/src/components/RegisterGroup'
 import { Td } from '@/src/components/table/Td'
 import { Th } from '@/src/components/table/Th'
@@ -13,22 +14,34 @@ import { useContext, useState } from 'react'
 const limit = 8
 
 export default function Groups() {
-  const { groups, isLoading } = useContext(UsersContext)
+  const { groups, isLoading, deleteGroup } = useContext(UsersContext)
+
   const [page, setPage] = useState(1)
+
   const [isRegisterGroupModalOpen, setIsRegisterGroupModalOpen] =
     useState(false)
+
   const [groupToEdit, setGroupToEdit] = useState<Group | null>(null)
+  const [groupIdToDelete, setGroupIdToEdit] = useState<string | null>(null)
 
   function closeRegisterGroupModal() {
     setIsRegisterGroupModalOpen(false)
   }
 
-  function openModalToEditGroup(group: Group) {
+  function handleOpenModalToEditGroup(group: Group) {
     setGroupToEdit(group)
   }
 
-  function closeEditGroupModal() {
+  function handleCloseEditGroupModal() {
     setGroupToEdit(null)
+  }
+
+  function handleOpenModalGroupToDelete(id: string) {
+    setGroupIdToEdit(id)
+  }
+
+  function handleCloseModalGroupToDelete() {
+    setGroupIdToEdit(null)
   }
 
   function handlePrevPage() {
@@ -89,11 +102,14 @@ export default function Groups() {
                   <div className="flex justify-end gap-2">
                     <button
                       className=" text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed"
-                      onClick={() => openModalToEditGroup(group)}
+                      onClick={() => handleOpenModalToEditGroup(group)}
                     >
                       <PencilSimple size={24} weight="fill" />
                     </button>
-                    <button className="text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
+                    <button
+                      className="text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed"
+                      onClick={() => handleOpenModalGroupToDelete(group.id)}
+                    >
                       <Trash size={24} weight="fill" />
                     </button>
                   </div>
@@ -103,9 +119,28 @@ export default function Groups() {
         </tbody>
       </table>
 
-      <Dialog.Root open={!!groupToEdit} onOpenChange={closeEditGroupModal}>
+      <Dialog.Root
+        open={!!groupToEdit}
+        onOpenChange={handleCloseEditGroupModal}
+      >
         {groupToEdit && (
-          <EditGroup group={groupToEdit} closeModal={closeEditGroupModal} />
+          <EditGroup
+            group={groupToEdit}
+            closeModal={handleCloseEditGroupModal}
+          />
+        )}
+      </Dialog.Root>
+
+      <Dialog.Root
+        open={!!groupIdToDelete}
+        onOpenChange={handleCloseModalGroupToDelete}
+      >
+        {groupIdToDelete && (
+          <ModalDelete
+            handleDelete={() => deleteGroup(groupIdToDelete)}
+            content="group"
+            closeModal={handleCloseModalGroupToDelete}
+          />
         )}
       </Dialog.Root>
 

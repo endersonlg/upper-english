@@ -38,11 +38,6 @@ export async function listClassrooms(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  // console.log(req.session.auth)
-  // if (req.session.auth) {
-  //   console.log(req.session.auth)
-  // }
-
   const { after, before } = req.query
 
   try {

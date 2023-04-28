@@ -23,8 +23,6 @@ interface EditGroupProps {
 export function EditGroup({ group, closeModal }: EditGroupProps) {
   const [studentsThisGroup, setStudentsThisGroup] = useState<string[]>([])
 
-  console.log(group)
-
   useEffect(() => {
     function loadDefaultStudents() {
       setStudentsThisGroup(group.students.map((students) => students.name))

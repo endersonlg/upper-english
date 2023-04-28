@@ -1,14 +1,17 @@
 import React, { ForwardedRef, forwardRef } from 'react'
+import ReactInputMask, { Props as ReactInputMaskProps } from 'react-input-mask'
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputMaskProps
+  extends React.InputHTMLAttributes<HTMLInputElement>,
+    ReactInputMaskProps {
   label?: string
-  mask?: string
+  mask: string | Array<string | RegExp>
   className?: string
   error?: boolean
 }
 
-export const Input = forwardRef(function Input(
-  { label, className, error, ...rest }: InputProps,
+export const InputMask = forwardRef(function Input(
+  { label, className, error, ...rest }: InputMaskProps,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   let classNameAux = 'flex flex-col gap-2'
@@ -24,8 +27,8 @@ export const Input = forwardRef(function Input(
   return (
     <div className={classNameAux}>
       {label && <label>{label}</label>}
-      <input
-        ref={ref}
+      <ReactInputMask
+        inputRef={ref}
         className={`bg-opacity-white-05 rounded-sm p-2 w-full ${errorCSS}`}
         {...rest}
       />

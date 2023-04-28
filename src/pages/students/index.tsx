@@ -1,3 +1,4 @@
+import { ModalDelete } from '@/src/components/ModalDelete'
 import { RegisterStudents } from '@/src/components/RegisterStudent'
 import { Td } from '@/src/components/table/Td'
 import { Th } from '@/src/components/table/Th'
@@ -12,12 +13,25 @@ import { useContext, useState } from 'react'
 const limit = 8
 
 export default function Students() {
-  const { students, isLoading } = useContext(UsersContext)
+  const { students, isLoading, deleteStudent } = useContext(UsersContext)
+
   const [page, setPage] = useState(1)
+
+  const [studentIdToDelete, setStudentIdToDelete] = useState<string | null>(
+    null,
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  function closeModal() {
+  function handleCloseModalRegisterNewStudent() {
     setIsModalOpen(false)
+  }
+
+  function handleOpenModalDeleteStudent(id: string) {
+    setStudentIdToDelete(id)
+  }
+
+  function handleCloseModalStudentToDelete() {
+    setStudentIdToDelete(null)
   }
 
   function handlePrevPage() {
@@ -51,7 +65,11 @@ export default function Students() {
                     Add
                   </button>
                 </Dialog.Trigger>
-                {isModalOpen && <RegisterStudents closeModal={closeModal} />}
+                {isModalOpen && (
+                  <RegisterStudents
+                    closeModal={handleCloseModalRegisterNewStudent}
+                  />
+                )}
               </Dialog.Root>
             </Th>
           </tr>
@@ -63,13 +81,30 @@ export default function Students() {
                 <Td className="w-2/4">{student.name}</Td>
                 <Td>
                   <button className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
-                    <Trash size={24} weight="fill" />
+                    <Trash
+                      size={24}
+                      weight="fill"
+                      onClick={() => handleOpenModalDeleteStudent(student.id)}
+                    />
                   </button>
                 </Td>
               </tr>
             ))}
         </tbody>
       </table>
+
+      <Dialog.Root
+        open={!!studentIdToDelete}
+        onOpenChange={handleCloseModalStudentToDelete}
+      >
+        {studentIdToDelete && (
+          <ModalDelete
+            content="student"
+            handleDelete={() => deleteStudent(studentIdToDelete)}
+            closeModal={handleCloseModalStudentToDelete}
+          />
+        )}
+      </Dialog.Root>
 
       {isLoading && (
         <div

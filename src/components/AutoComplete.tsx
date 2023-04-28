@@ -9,10 +9,21 @@ interface AutoCompleteProps {
   className?: string
   onChange: (value: string) => void
   value: string
+  placeholder?: string
+  error?: boolean
 }
 
 export const AutoComplete = React.forwardRef(function AutoComplete(
-  { label, options, className, required, onChange, value }: AutoCompleteProps,
+  {
+    label,
+    options,
+    className,
+    required,
+    onChange,
+    value,
+    placeholder,
+    error,
+  }: AutoCompleteProps,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const [query, setQuery] = useState('')
@@ -36,6 +47,8 @@ export const AutoComplete = React.forwardRef(function AutoComplete(
           displayValue={(option: string) => option}
           onChange={(event) => setQuery(event.target.value)}
           required={required}
+          placeholder={placeholder}
+          error={error}
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2"></Combobox.Button>
         <Transition

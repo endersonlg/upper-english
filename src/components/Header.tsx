@@ -13,7 +13,9 @@ export function Header() {
 
   return (
     <header className="flex items-center justify-between ">
-      <Image src={logo} alt="" width={120} height={120} />
+      <Link href={'/'}>
+        <Image src={logo} alt="" width={120} height={120} />
+      </Link>
       {isAuthenticated && (
         <nav className="flex gap-2 ">
           <Link

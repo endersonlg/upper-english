@@ -7,16 +7,6 @@ interface ResponseRegisterNewClassroom {
   ref: {
     id: string
   }
-
-  data: {
-    student: string
-    teacher: string
-    unit: string
-    group: string
-    lastWord: string
-    lastDictation: string | null
-    lastReading: string | null
-  }
 }
 
 export default async function registerClassroom(
@@ -24,36 +14,35 @@ export default async function registerClassroom(
   res: NextApiResponse,
 ) {
   const {
-    student,
     teacher,
+    students,
     unit,
-    group,
+    page,
     lastWord,
     lastDictation,
     lastReading,
+    dateTime,
+    group,
   } = req.body
 
   try {
-    const { data, ref } = await fauna.query<ResponseRegisterNewClassroom>(
+    await fauna.query<ResponseRegisterNewClassroom>(
       q.Create(q.Collection('classrooms'), {
         data: {
-          student,
           teacher,
+          students,
           unit,
-          group,
+          page,
           lastWord,
           lastDictation,
           lastReading,
+          dateTime,
+          group,
         },
       }),
     )
 
-    return res.status(201).json({
-      classroom: {
-        id: ref.id,
-        ...data,
-      },
-    })
+    return res.status(201).json({ message: 'Success' })
   } catch (err) {
     return res
       .status(500)

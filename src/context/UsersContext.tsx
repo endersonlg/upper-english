@@ -36,7 +36,7 @@ interface EditGroup {
   studentsName: string[]
 }
 
-interface Teachers {
+interface Teacher {
   id: string
   name: string
 }
@@ -55,19 +55,21 @@ interface ResponseRegisterGroup {
 }
 
 interface ResponseListTeachersStudentsGroups {
-  teachers: Teachers[]
+  teachers: Teacher[]
   students: Student[]
   groups: Group[]
 }
 
 interface UsersContextType {
   students: Student[]
-  teachers: Teachers[]
+  teachers: Teacher[]
   groups: Group[]
   isLoading: boolean
   registerStudent: (data: RegisterStudent) => Promise<void>
+  deleteStudent: (id: string) => Promise<void>
   registerGroup: (data: RegisterGroup) => Promise<void>
   editGroup: (data: EditGroup) => Promise<void>
+  deleteGroup: (id: string) => Promise<void>
 }
 
 export const UsersContext = createContext({} as UsersContextType)
@@ -78,7 +80,7 @@ interface UsersProviderProps {
 
 export function UsersProvider({ children }: UsersProviderProps) {
   const [students, setStudents] = useState<Student[]>([])
-  const [teachers, setTeachers] = useState<Teachers[]>([])
+  const [teachers, setTeachers] = useState<Teacher[]>([])
   const [groups, setGroups] = useState<Group[]>([])
   const [isLoading, setLoading] = useState(true)
 
@@ -111,19 +113,34 @@ export function UsersProvider({ children }: UsersProviderProps) {
 
   async function registerStudent({ name }: RegisterStudent) {
     try {
-      const { data } = await axios.post<ResponseRegisterStudent>(
+      await axios.post<ResponseRegisterStudent>(
         '/api/protected/registerStudent',
         {
           name,
         },
       )
 
-      setStudents((state) => [data.student, ...state])
+      load()
     } catch (err) {
       toast.error(
         (err as AxiosError<{ error: string }>)?.response?.data?.error ??
           'Failed to register new student',
       )
+    }
+  }
+
+  async function deleteStudent(id: string) {
+    if (id) {
+      try {
+        await axios.delete(`/api/protected/deleteStudent?id=${id}`)
+
+        load()
+      } catch (err) {
+        toast.error(
+          (err as AxiosError<{ error: string }>)?.response?.data?.error ??
+            'Failed to delete classroom',
+        )
+      }
     }
   }
 
@@ -133,22 +150,12 @@ export function UsersProvider({ children }: UsersProviderProps) {
         students.find((student) => student.name === studentThisGroup),
       )
 
-      const { data } = await axios.post<ResponseRegisterGroup>(
-        '/api/protected/registerGroup',
-        {
-          name,
-          user_ids: studentsAux.map((student) => student?.id),
-        },
-      )
+      await axios.post<ResponseRegisterGroup>('/api/protected/registerGroup', {
+        name,
+        user_ids: studentsAux.map((student) => student?.id),
+      })
 
-      setGroups((state) => [
-        {
-          id: data.group.id,
-          name,
-          students: studentsAux as Student[],
-        },
-        ...state,
-      ])
+      load()
     } catch (err) {
       toast.error(
         (err as AxiosError<{ error: string }>)?.response?.data?.error ??
@@ -188,6 +195,21 @@ export function UsersProvider({ children }: UsersProviderProps) {
     }
   }
 
+  async function deleteGroup(id: string) {
+    if (id) {
+      try {
+        await axios.delete(`/api/protected/deleteGroup?id=${id}`)
+
+        load()
+      } catch (err) {
+        toast.error(
+          (err as AxiosError<{ error: string }>)?.response?.data?.error ??
+            'Failed to delete classroom',
+        )
+      }
+    }
+  }
+
   return (
     <UsersContext.Provider
       value={{
@@ -196,8 +218,10 @@ export function UsersProvider({ children }: UsersProviderProps) {
         groups,
         isLoading,
         registerStudent,
+        deleteStudent,
         registerGroup,
         editGroup,
+        deleteGroup,
       }}
     >
       {children}
