@@ -1,18 +1,21 @@
 import { ModalDelete } from '@/src/components/ModalDelete'
 import { RegisterStudents } from '@/src/components/RegisterStudent'
+import { SearchForm } from '@/src/components/SearchForm'
 import { Td } from '@/src/components/table/Td'
 import { Th } from '@/src/components/table/Th'
-import { UsersContext } from '@/src/context/UsersContext'
+import { Student, UsersContext } from '@/src/context/UsersContext'
 import { sessionOptions } from '@/src/lib/session'
 import * as Dialog from '@radix-ui/react-dialog'
 import { withIronSessionSsr } from 'iron-session/next'
 
 import { Trash } from 'phosphor-react'
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 
 const limit = 8
 
 export default function Students() {
+  const [studentsFiltered, setStudentsFiltered] = useState<Student[]>([])
+
   const { students, isLoading, deleteStudent } = useContext(UsersContext)
 
   const [page, setPage] = useState(1)
@@ -21,6 +24,21 @@ export default function Students() {
     null,
   )
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  useEffect(() => {
+    setStudentsFiltered(students)
+  }, [students])
+
+  function searchStudents(query: string) {
+    if (!query) {
+      setStudentsFiltered(students)
+    }
+    setStudentsFiltered(
+      students.filter((students) =>
+        students.name.toUpperCase().includes(query.toUpperCase()),
+      ),
+    )
+  }
 
   function handleCloseModalRegisterNewStudent() {
     setIsModalOpen(false)
@@ -44,12 +62,16 @@ export default function Students() {
     setPage((state) => state + 1)
   }
 
-  const total = students.length
+  const total = studentsFiltered.length
   const hasMore = page * limit >= total
-  const paginatedStudents = students.slice((page - 1) * limit, page * limit)
+  const paginatedStudents = studentsFiltered.slice(
+    (page - 1) * limit,
+    page * limit,
+  )
 
   return (
     <main className="p-8 h-screen w-full flex flex-col items-center justify-center">
+      <SearchForm search={searchStudents} />
       <table className="w-full border-collapse">
         <thead>
           <tr>

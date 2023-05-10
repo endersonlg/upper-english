@@ -11,9 +11,10 @@ import { useQuery } from 'react-query'
 import { queryClient } from '../lib/queryClient'
 import { withIronSessionSsr } from 'iron-session/next'
 import { sessionOptions } from '../lib/session'
-import { format, parse } from 'date-fns'
+import { parse } from 'date-fns'
 import { ClassroomView } from '../components/ClassroomView'
 import { ModalDelete } from '../components/ModalDelete'
+import { SearchForm } from '../components/SearchForm'
 
 export interface NewClassroom {
   teacher: {
@@ -54,7 +55,7 @@ export interface Classroom {
   lastWord: string
   lastDictation?: string
   lastReading?: string
-  dateTime: string
+  dateShow: string
   group?: {
     id: string
     name: string
@@ -79,6 +80,8 @@ export default function Classrooms() {
     null,
   )
 
+  const [search, setSearch] = useState<string>('')
+
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [after, setAfter] = useState<string | null>(null)
@@ -87,7 +90,7 @@ export default function Classrooms() {
   const { isLoading: isLoadingUsers } = useContext(UsersContext)
 
   const { data, isLoading, isFetching } = useQuery(
-    ['classrooms', page],
+    ['classrooms', page, search],
     async () => {
       const params = new URLSearchParams()
 
@@ -95,6 +98,10 @@ export default function Classrooms() {
         params.set('after', after)
       } else if (before) {
         params.set('before', before)
+      }
+
+      if (search) {
+        params.set('search', search)
       }
 
       const response = await axios.get<ResponseClassroom>(
@@ -110,6 +117,10 @@ export default function Classrooms() {
       staleTime: 1000 * 60 * 60 * 1,
     },
   )
+
+  function handleSearch(query: string) {
+    setSearch(query)
+  }
 
   function handleCloseModalRegisterNewClassroom() {
     setRegisterClassroomIsModalOpen(false)
@@ -172,6 +183,8 @@ export default function Classrooms() {
 
     const dateTime = parse(`${date} ${time}`, 'MM/dd/yyyy HH:mm', new Date())
 
+    const dateShow = `${date} ${time}`
+
     try {
       await axios.post('/api/protected/registerClassroom', {
         teacher,
@@ -182,6 +195,7 @@ export default function Classrooms() {
         lastDictation,
         lastReading,
         dateTime,
+        dateShow,
         group,
       })
 
@@ -217,8 +231,9 @@ export default function Classrooms() {
     name: classroom.group
       ? classroom.group.name
       : classroom.students.map((student) => student.name).toString(),
-    dateTime: format(new Date(classroom.dateTime), 'MM/dd/yyyy HH:mm'),
-    unitAndPage: `${classroom.unit} - ${classroom.page}`,
+    dateShow: classroom.dateShow,
+    unit: classroom.unit,
+    page: classroom.page,
     lastWord: classroom.lastWord,
     lastDictation: classroom.lastDictation ?? '--',
     lastReading: classroom.lastReading ?? '--',
@@ -228,12 +243,14 @@ export default function Classrooms() {
   return (
     <>
       <main className="p-8 h-screen w-full flex flex-col items-center justify-center">
+        <SearchForm search={handleSearch} />
         <table className="w-full border-collapse">
           <thead>
             <tr>
               <Th className="text-left">Date</Th>
               <Th className="text-left">Name ( Group | Student )</Th>
-              <Th className="text-left">U - P</Th>
+              <Th className="text-left">U</Th>
+              <Th className="text-left">P</Th>
               <Th className="text-left">Last word</Th>
               <Th className="text-left">Last Dictation</Th>
               <Th className="text-left">Last reading</Th>
@@ -267,9 +284,10 @@ export default function Classrooms() {
               !isFetching &&
               classroomsToShow?.map((classroom) => (
                 <tr key={classroom.id}>
-                  <Td>{classroom.dateTime}</Td>
+                  <Td>{classroom.dateShow}</Td>
                   <Td>{classroom.name}</Td>
-                  <Td>{classroom.unitAndPage}</Td>
+                  <Td>{classroom.unit}</Td>
+                  <Td>{classroom.page}</Td>
                   <Td>{classroom.lastWord}</Td>
                   <Td>{classroom.lastDictation}</Td>
                   <Td>{classroom.lastReading}</Td>

@@ -22,6 +22,7 @@ export default async function registerClassroom(
     lastDictation,
     lastReading,
     dateTime,
+    dateShow,
     group,
   } = req.body
 
@@ -37,6 +38,7 @@ export default async function registerClassroom(
           lastDictation,
           lastReading,
           dateTime,
+          dateShow,
           group,
         },
       }),

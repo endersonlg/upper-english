@@ -38,19 +38,114 @@ export async function listClassrooms(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { after, before } = req.query
+  const { after, before, search } = req.query
 
   try {
     const { result, total } = await fauna.query<ResponseListClassrooms>(
       q.Let(
         {
           result: q.Map(
-            q.Paginate(q.Documents(q.Collection('classrooms')), {
-              size: 8,
-              after: after && q.Ref(q.Collection('classrooms'), after),
-              before: before && q.Ref(q.Collection('classrooms'), before),
-            }),
-            q.Lambda((classroom) => q.Get(classroom)),
+            search
+              ? q.Filter(
+                  q.Paginate(q.Documents(q.Collection('classrooms')), {
+                    size: 8,
+                    after: after && q.Ref(q.Collection('classrooms'), after),
+                    before: before && q.Ref(q.Collection('classrooms'), before),
+                  }),
+                  q.Lambda((ref) =>
+                    q.Or(
+                      q.ContainsStr(
+                        q.LowerCase(q.Select(['data', 'lastWord'], q.Get(ref))),
+                        q.LowerCase(search),
+                      ),
+                      q.ContainsStr(
+                        q.LowerCase(
+                          q.Select(['data', 'teacher', 'name'], q.Get(ref)),
+                        ),
+                        q.LowerCase(search),
+                      ),
+                      q.ContainsStr(
+                        q.LowerCase(
+                          q.ToString(q.Select(['data', 'page'], q.Get(ref))),
+                        ),
+                        q.LowerCase(search),
+                      ),
+                      q.ContainsStr(
+                        q.LowerCase(
+                          q.ToString(q.Select(['data', 'unit'], q.Get(ref))),
+                        ),
+                        q.LowerCase(search),
+                      ),
+                      q.If(
+                        q.IsString(
+                          q.Select(['data', 'lastReading'], q.Get(ref), null),
+                        ),
+                        q.ContainsStr(
+                          q.LowerCase(
+                            q.Select(['data', 'lastReading'], q.Get(ref)),
+                          ),
+                          q.LowerCase(search),
+                        ),
+                        false,
+                      ),
+                      q.If(
+                        q.IsString(
+                          q.Select(['data', 'lastDictation'], q.Get(ref), null),
+                        ),
+                        q.ContainsStr(
+                          q.LowerCase(
+                            q.Select(['data', 'lastDictation'], q.Get(ref)),
+                          ),
+                          q.LowerCase(search),
+                        ),
+                        false,
+                      ),
+                      q.ContainsStr(
+                        q.LowerCase(
+                          q.ToString(
+                            q.Select(['data', 'dateShow'], q.Get(ref)),
+                          ),
+                        ),
+                        q.LowerCase(search),
+                      ),
+                      q.If(
+                        q.IsString(
+                          q.Select(['data', 'group', 'name'], q.Get(ref), null),
+                        ),
+                        q.ContainsStr(
+                          q.LowerCase(
+                            q.Select(['data', 'group', 'name'], q.Get(ref)),
+                          ),
+                          q.LowerCase(search),
+                        ),
+                        false,
+                      ),
+                      q.Reduce(
+                        q.Lambda(
+                          ['acc', 'value'],
+                          q.If(
+                            q.ContainsStr(
+                              q.LowerCase(
+                                q.ToString(q.Select('name', q.Var('value'))),
+                              ),
+                              q.LowerCase(search),
+                            ),
+                            true,
+                            q.Var('acc'),
+                          ),
+                        ),
+                        false,
+                        q.Select(['data', 'students'], q.Get(ref)),
+                      ),
+                    ),
+                  ),
+                )
+              : q.Paginate(q.Documents(q.Collection('classrooms')), {
+                  size: 8,
+                  after: after && q.Ref(q.Collection('classrooms'), after),
+                  before: before && q.Ref(q.Collection('classrooms'), before),
+                }),
+            q.Lambda((ref) => q.Get(ref)),
           ),
           total: q.Count(q.Documents(q.Collection('classrooms'))),
         },

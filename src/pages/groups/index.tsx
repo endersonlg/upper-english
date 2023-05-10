@@ -1,6 +1,7 @@
 import { EditGroup } from '@/src/components/EditGroup '
 import { ModalDelete } from '@/src/components/ModalDelete'
 import { RegisterGroups } from '@/src/components/RegisterGroup'
+import { SearchForm } from '@/src/components/SearchForm'
 import { Td } from '@/src/components/table/Td'
 import { Th } from '@/src/components/table/Th'
 import { Group, UsersContext } from '@/src/context/UsersContext'
@@ -9,7 +10,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { withIronSessionSsr } from 'iron-session/next'
 
 import { PencilSimple, Trash } from 'phosphor-react'
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 
 const limit = 8
 
@@ -21,8 +22,29 @@ export default function Groups() {
   const [isRegisterGroupModalOpen, setIsRegisterGroupModalOpen] =
     useState(false)
 
+  const [groupsFiltered, setGroupsFiltered] = useState<Group[]>([])
+
   const [groupToEdit, setGroupToEdit] = useState<Group | null>(null)
   const [groupIdToDelete, setGroupIdToEdit] = useState<string | null>(null)
+
+  useEffect(() => {
+    setGroupsFiltered(groups)
+  }, [groups])
+
+  function searchGroup(query: string) {
+    if (!query) {
+      setGroupsFiltered(groups)
+    }
+    setGroupsFiltered(
+      groups.filter(
+        (group) =>
+          group.name.toUpperCase().includes(query.toUpperCase()) ||
+          group.students.some((student) =>
+            student.name.toUpperCase().includes(query.toUpperCase()),
+          ),
+      ),
+    )
+  }
 
   function closeRegisterGroupModal() {
     setIsRegisterGroupModalOpen(false)
@@ -54,10 +76,10 @@ export default function Groups() {
     setPage((state) => state + 1)
   }
 
-  const total = groups.length
+  const total = groupsFiltered.length
   const hasMore = page * limit >= total
 
-  const groupsAdjustedPaginated = groups
+  const groupsAdjustedPaginated = groupsFiltered
     .slice((page - 1) * limit, page * limit)
     .map((group) => ({
       ...group,
@@ -66,6 +88,7 @@ export default function Groups() {
 
   return (
     <main className="p-8 h-screen w-full flex flex-col items-center justify-center">
+      <SearchForm search={searchGroup} />
       <table className="w-full border-collapse">
         <thead>
           <tr>

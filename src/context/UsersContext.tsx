@@ -18,7 +18,7 @@ interface RegisterGroup {
   studentsName: string[]
 }
 
-interface Student {
+export interface Student {
   id: string
   name: string
   group_id?: string

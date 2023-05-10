@@ -169,6 +169,7 @@ export function RegisterClassroom({
 
       return time
     }
+    return time
   }
 
   function adjustDate(date: string) {
@@ -189,10 +190,13 @@ export function RegisterClassroom({
 
       return date
     }
+    return date
   }
 
   const optionsStudents = students.map((student) => student.name)
-  const optionsGroups = groups.map((group) => group.name)
+  const optionsGroups = groups
+    .filter((group) => group.students.length)
+    .map((group) => group.name)
 
   return (
     <Dialog.Portal>
