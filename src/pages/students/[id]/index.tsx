@@ -1,20 +1,16 @@
-import { RegisterClassroom } from '../components/RegisterClassroom'
-import * as Dialog from '@radix-ui/react-dialog'
-import { Binoculars, Trash } from 'phosphor-react'
-import { Th } from '../components/table/Th'
-import { Td } from '../components/table/Td'
-import axios, { AxiosError } from 'axios'
-import { useContext, useEffect, useState } from 'react'
-import { UsersContext } from '../context/UsersContext'
-import { toast } from 'react-toastify'
+import axios from 'axios'
+import { useContext, useEffect, useMemo, useState } from 'react'
+
 import { useQuery } from 'react-query'
-import { queryClient } from '../lib/queryClient'
+
 import { withIronSessionSsr } from 'iron-session/next'
-import { sessionOptions } from '../lib/session'
-import { format, parse } from 'date-fns'
-import { ClassroomView } from '../components/ClassroomView'
-import { ModalDelete } from '../components/ModalDelete'
-import { SearchForm } from '../components/SearchForm'
+
+import { Th } from '@/src/components/table/Th'
+import { Td } from '@/src/components/table/Td'
+
+import { sessionOptions } from '@/src/lib/session'
+import { useRouter } from 'next/router'
+import { UsersContext } from '@/src/context/UsersContext'
 
 export interface NewClassroom {
   teacher: {
@@ -41,11 +37,7 @@ export interface NewClassroom {
 
 export interface Classroom {
   id: string
-  students: {
-    id: string
-    name: string
-    present: boolean
-  }[]
+  student: string
   teacher: {
     id: string
     name: string
@@ -60,6 +52,7 @@ export interface Classroom {
     id: string
     name: string
   }
+  present: boolean
 }
 
 interface ResponseClassroom {
@@ -71,26 +64,25 @@ interface ResponseClassroom {
 
 const limit = 8
 
-export default function Classrooms() {
-  const [isRegisterClassroomModalOpen, setRegisterClassroomIsModalOpen] =
-    useState(false)
+export default function ClassroomsOfStudent() {
+  const { query } = useRouter()
 
-  const [classroomToView, setClassroomToView] = useState<Classroom | null>(null)
-  const [classroomIdToDelete, setClassroomIdToDelete] = useState<string | null>(
-    null,
-  )
-
-  const [search, setSearch] = useState<string>('')
+  const { id } = query
 
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [after, setAfter] = useState<string[] | null>(null)
   const [before, setBefore] = useState<string[] | null>(null)
 
-  const { isLoading: isLoadingUsers } = useContext(UsersContext)
+  const { students } = useContext(UsersContext)
+
+  const user = useMemo(
+    () => students.find((student) => student.id === id),
+    [id, students],
+  )
 
   const { data, isLoading, isFetching } = useQuery(
-    ['classrooms', page, search],
+    ['ClassroomsOfStudent', page, 'student', id],
     async () => {
       const params = new URLSearchParams()
 
@@ -100,12 +92,10 @@ export default function Classrooms() {
         params.set('before', before.toString())
       }
 
-      if (search) {
-        params.set('search', search)
-      }
+      params.set('student', user?.name as string)
 
       const response = await axios.get<ResponseClassroom>(
-        '/api/protected/listClassrooms?' + params.toString(),
+        '/api/protected/listClassroomsByStudent?' + params.toString(),
       )
 
       setAfter(null)
@@ -115,35 +105,9 @@ export default function Classrooms() {
     },
     {
       staleTime: 1000 * 60 * 60 * 1,
+      enabled: !!user,
     },
   )
-
-  function handleSearch(query: string) {
-    setSearch(query)
-  }
-
-  function handleCloseModalRegisterNewClassroom() {
-    setRegisterClassroomIsModalOpen(false)
-  }
-
-  function handleOpenModalViewClassroom(id: string) {
-    const classroom = data?.classrooms.find((classroom) => classroom.id === id)
-    if (classroom) {
-      setClassroomToView(classroom)
-    }
-  }
-
-  function handleCloseModalClassroomToView() {
-    setClassroomToView(null)
-  }
-
-  function handleOpenModalDeleteClassroom(id: string) {
-    setClassroomIdToDelete(id)
-  }
-
-  function handleCloseModalClassroomToDelete() {
-    setClassroomIdToDelete(null)
-  }
 
   function handleNextPage() {
     setPage((state) => state + 1)
@@ -167,70 +131,11 @@ export default function Classrooms() {
     }
   }, [data])
 
-  async function registerClassroom(newClassroom: NewClassroom) {
-    const {
-      teacher,
-      unit,
-      page,
-      lastWord,
-      lastDictation,
-      lastReading,
-      date,
-      time,
-      studentsPresent,
-      group,
-    } = newClassroom
-
-    const dateTime = parse(`${date} ${time}`, 'MM/dd/yyyy HH:mm', new Date())
-
-    const dateShow = format(dateTime, "iii, MMM d, yyyy 'at' H:mm a")
-
-    try {
-      await axios.post('/api/protected/registerClassroom', {
-        teacher,
-        students: studentsPresent,
-        unit,
-        page,
-        lastWord,
-        lastDictation,
-        lastReading,
-        dateTime,
-        dateShow,
-        group,
-      })
-
-      queryClient.removeQueries('classrooms')
-    } catch (err) {
-      toast.error(
-        (err as AxiosError<{ error: string }>)?.response?.data?.error ??
-          'Failed to register new classroom',
-      )
-    }
-  }
-
-  async function deleteClassroom() {
-    if (classroomIdToDelete) {
-      try {
-        await axios.delete(
-          `/api/protected/deleteClassroom?id=${classroomIdToDelete}`,
-        )
-        queryClient.removeQueries('classrooms')
-      } catch (err) {
-        toast.error(
-          (err as AxiosError<{ error: string }>)?.response?.data?.error ??
-            'Failed to delete classroom',
-        )
-      }
-    }
-  }
-
   const hasMore = page * limit >= total
 
   const classroomsToShow = data?.classrooms.map((classroom) => ({
     id: classroom.id,
-    name: classroom.group
-      ? classroom.group.name
-      : classroom.students.map((student) => student.name).toString(),
+    name: classroom.student,
     dateShow: classroom.dateShow,
     unit: classroom.unit,
     page: classroom.page,
@@ -238,45 +143,24 @@ export default function Classrooms() {
     lastDictation: classroom.lastDictation ?? '--',
     lastReading: classroom.lastReading ?? '--',
     teacher: classroom.teacher.name,
+    present: classroom.present,
   }))
 
   return (
     <>
       <main className="p-8 h-screen w-full flex flex-col items-center justify-center">
-        <SearchForm search={handleSearch} />
         <table className="w-full border-collapse">
           <thead>
             <tr>
               <Th className="text-left">Date</Th>
-              <Th className="text-left">Name ( Group | Student )</Th>
+              <Th className="text-left">Name</Th>
               <Th className="text-left">U</Th>
               <Th className="text-left">P</Th>
               <Th className="text-left">Last word</Th>
               <Th className="text-left">Last Dictation</Th>
               <Th className="text-left">Last reading</Th>
               <Th className="text-left">Teacher</Th>
-              <Th className="text-right">
-                <Dialog.Root
-                  open={isRegisterClassroomModalOpen}
-                  onOpenChange={setRegisterClassroomIsModalOpen}
-                >
-                  <Dialog.Trigger asChild>
-                    <button
-                      type="button"
-                      className="bg-green-500 px-4 py-2 rounded-md hover:enabled:bg-green-700 transition duration-200 ease-in-out disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      disabled={isLoadingUsers}
-                    >
-                      Add
-                    </button>
-                  </Dialog.Trigger>
-                  {isRegisterClassroomModalOpen && (
-                    <RegisterClassroom
-                      closeModal={handleCloseModalRegisterNewClassroom}
-                      registerClassroom={registerClassroom}
-                    />
-                  )}
-                </Dialog.Root>
-              </Th>
+              <Th className="text-left"></Th>
             </tr>
           </thead>
           <tbody>
@@ -284,7 +168,7 @@ export default function Classrooms() {
               !isFetching &&
               classroomsToShow?.map((classroom) => (
                 <tr key={classroom.id}>
-                  <Td className="whitespace-nowrap">{classroom.dateShow}</Td>
+                  <Td>{classroom.dateShow}</Td>
                   <Td>{classroom.name}</Td>
                   <Td>{classroom.unit}</Td>
                   <Td>{classroom.page}</Td>
@@ -292,50 +176,17 @@ export default function Classrooms() {
                   <Td>{classroom.lastDictation}</Td>
                   <Td>{classroom.lastReading}</Td>
                   <Td>{classroom.teacher}</Td>
-                  <Td>
-                    <div className="flex justify-end gap-2">
-                      <button
-                        className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed"
-                        onClick={() =>
-                          handleOpenModalViewClassroom(classroom.id)
-                        }
-                      >
-                        <Binoculars size={24} weight="fill" />
-                      </button>
-                      <button
-                        className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed"
-                        onClick={() =>
-                          handleOpenModalDeleteClassroom(classroom.id)
-                        }
-                      >
-                        <Trash size={24} weight="fill" />
-                      </button>
-                    </div>
+                  <Td
+                    className={
+                      classroom.present ? 'text-green-500' : 'text-red-500'
+                    }
+                  >
+                    {classroom.present ? 'present' : 'missed'}
                   </Td>
                 </tr>
               ))}
           </tbody>
         </table>
-
-        <Dialog.Root
-          open={!!classroomToView}
-          onOpenChange={handleCloseModalClassroomToView}
-        >
-          {classroomToView && <ClassroomView classroom={classroomToView} />}
-        </Dialog.Root>
-
-        <Dialog.Root
-          open={!!classroomIdToDelete}
-          onOpenChange={handleCloseModalClassroomToDelete}
-        >
-          {classroomIdToDelete && (
-            <ModalDelete
-              content="classroom"
-              handleDelete={deleteClassroom}
-              closeModal={handleCloseModalClassroomToDelete}
-            />
-          )}
-        </Dialog.Root>
 
         {(isLoading || isFetching) && (
           <div

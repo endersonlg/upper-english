@@ -8,8 +8,10 @@ import { sessionOptions } from '@/src/lib/session'
 import * as Dialog from '@radix-ui/react-dialog'
 import { withIronSessionSsr } from 'iron-session/next'
 
-import { Trash } from 'phosphor-react'
+import { MagnifyingGlass, Trash } from 'phosphor-react'
 import { useContext, useEffect, useState } from 'react'
+
+import Link from 'next/link'
 
 const limit = 8
 
@@ -102,13 +104,18 @@ export default function Students() {
               <tr key={student.id}>
                 <Td className="w-2/4">{student.name}</Td>
                 <Td>
-                  <button className="block ml-auto text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
-                    <Trash
-                      size={24}
-                      weight="fill"
-                      onClick={() => handleOpenModalDeleteStudent(student.id)}
-                    />
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <Link href={`/students/${student.id}`}>
+                      <MagnifyingGlass size={24} weight="bold" />
+                    </Link>
+                    <button className="block text-gray-300 hover:enabled:text-gray-500 transition duration-200 ease-in-out disabled:text-gray-600 disabled:cursor-not-allowed">
+                      <Trash
+                        size={24}
+                        weight="fill"
+                        onClick={() => handleOpenModalDeleteStudent(student.id)}
+                      />
+                    </button>
+                  </div>
                 </Td>
               </tr>
             ))}

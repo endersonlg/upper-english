@@ -93,9 +93,27 @@ export function UsersProvider({ children }: UsersProviderProps) {
         '/api/protected/listTeachersStudentsGroups',
       )
 
-      setStudents(data.students)
-      setTeachers(data.teachers)
-      setGroups(data.groups)
+      const studentsSort = data.students.sort((a, b) => {
+        if (a.name < b.name) return -1
+        if (a.name > b.name) return 1
+        return 0
+      })
+
+      const teachersSort = data.teachers.sort((a, b) => {
+        if (a.name < b.name) return -1
+        if (a.name > b.name) return 1
+        return 0
+      })
+
+      const groupsSort = data.groups.sort((a, b) => {
+        if (a.name < b.name) return -1
+        if (a.name > b.name) return 1
+        return 0
+      })
+
+      setStudents(studentsSort)
+      setTeachers(teachersSort)
+      setGroups(groupsSort)
     } catch (err) {
       toast.error(
         (err as AxiosError<{ error: string }>)?.response?.data?.error ??

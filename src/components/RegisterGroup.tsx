@@ -132,8 +132,8 @@ export function RegisterGroups({ closeModal }: RegisterGroupsProps) {
 
           <button
             type="submit"
-            className="flex items-center justify-center gap-2 mt-6 bg-green-500 p-4 rounded-lg  hover:enabled:bg-green-700 transition duration-200 ease-in-out"
-            disabled={isSubmitting}
+            className="flex items-center justify-center gap-2 mt-6 bg-green-500 p-4 rounded-lg  hover:enabled:bg-green-700 transition duration-200 ease-in-out disabled:cursor-not-allowed"
+            disabled={isSubmitting || !studentsThisGroup.length}
           >
             {isSubmitting && <CircleNotch size={24} className="animate-spin" />}
             Confirm
