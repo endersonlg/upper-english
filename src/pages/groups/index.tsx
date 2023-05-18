@@ -32,6 +32,7 @@ export default function Groups() {
   }, [groups])
 
   function searchGroup(query: string) {
+    setPage(1)
     if (!query) {
       setGroupsFiltered(groups)
     }

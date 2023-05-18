@@ -32,6 +32,7 @@ export default function Students() {
   }, [students])
 
   function searchStudents(query: string) {
+    setPage(1)
     if (!query) {
       setStudentsFiltered(students)
     }

@@ -119,6 +119,7 @@ export default function Classrooms() {
   )
 
   function handleSearch(query: string) {
+    setPage(1)
     setSearch(query)
   }
 
@@ -215,6 +216,7 @@ export default function Classrooms() {
           `/api/protected/deleteClassroom?id=${classroomIdToDelete}`,
         )
         queryClient.removeQueries('classrooms')
+        queryClient.removeQueries('ClassroomsOfStudent')
       } catch (err) {
         toast.error(
           (err as AxiosError<{ error: string }>)?.response?.data?.error ??
